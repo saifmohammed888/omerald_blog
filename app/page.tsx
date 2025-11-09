@@ -69,7 +69,7 @@ export default async function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
         {/* Recent Articles Carousel Section with Sidebar */}
         {recentCarouselArticles.length > 0 && (
-          <section className="mb-20">
+          <section className="mb-20 animate-fade-in">
             <div className="mb-6">
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Latest Articles</h2>
               <p className="text-gray-600">Discover our most recent health and wellness insights</p>
@@ -101,7 +101,7 @@ export default async function Home() {
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">Recent Posts</h2>
             <Link 
               href="/articles"
-              className="text-gray-700 hover:text-gray-900 font-semibold text-sm border-2 border-gray-300 px-5 py-2.5 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+              className="text-gray-700 hover:text-gray-900 font-semibold text-sm border-2 border-gray-300 px-5 py-2.5 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 transform hover:scale-105"
             >
               All Posts
             </Link>
@@ -109,15 +109,20 @@ export default async function Home() {
 
           {recentArticles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {recentArticles.map((article: any) => (
-                <Link key={article.id} href={`/articles/${article.slug || article.id}`}>
-                  <article className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col">
+              {recentArticles.map((article: any, index: number) => (
+                <Link 
+                  key={article.id} 
+                  href={`/articles/${article.slug || article.id}`}
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <article className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col transform hover:-translate-y-1">
                     {/* Image */}
                     <div className="relative h-64 overflow-hidden bg-gray-100">
                       <ArticleImage
                         src={article.image}
                         alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full"
                         fallbackClassName="h-64"
                       />
                       {/* Category Badge Overlay */}

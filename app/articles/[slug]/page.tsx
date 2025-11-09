@@ -21,12 +21,6 @@ async function getRelatedArticles(currentArticleId: number, healthTopics: string
     if (!healthTopics) return []
     
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/articles?page=1&limit=100&status=1&sortBy=created_at&sortOrder=desc`, {
-      cache: 'no-store'
-    })
-    if (!res.ok) return []
-    const data = await res.json()
-    const articles = data.data || []
     
     // Extract health topic IDs from current article
     const currentTopicIds = healthTopics.split(',').map((t: string) => {
@@ -37,23 +31,21 @@ async function getRelatedArticles(currentArticleId: number, healthTopics: string
     
     if (currentTopicIds.length === 0) return []
     
-    // Find articles that share at least one health topic with the current article
+    // Use the first topic ID to filter related articles efficiently
+    // This is much more efficient than fetching 100 articles and filtering client-side
+    const firstTopicId = currentTopicIds[0]
+    const res = await fetch(
+      `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${firstTopicId}`,
+      { cache: 'no-store' }
+    )
+    if (!res.ok) return []
+    const data = await res.json()
+    const articles = data.data || []
+    
+    // Filter out current article and limit to 6
     const related = articles
-      .filter((article: any) => {
-        // Exclude current article
-        if (article.id === currentArticleId) return false
-        if (!article.health_topics) return false
-        
-        const articleTopicIds = article.health_topics.split(',').map((t: string) => {
-          const trimmed = t.trim()
-          const parsed = parseInt(trimmed, 10)
-          return isNaN(parsed) ? null : parsed
-        }).filter((id: number | null) => id !== null) as number[]
-        
-        // Check if any topic IDs match
-        return currentTopicIds.some(id => articleTopicIds.includes(id))
-      })
-      .slice(0, 6) // Limit to 6 related articles
+      .filter((article: any) => article.id !== currentArticleId)
+      .slice(0, 6)
     
     return related
   } catch (error) {
@@ -75,7 +67,7 @@ export default async function ArticlePage({
   const relatedArticles = await getRelatedArticles(article.id, article.health_topics || '')
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
       <Link 
         href="/articles" 
         className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium mb-8 transition-colors group"
@@ -89,13 +81,14 @@ export default async function ArticlePage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Article Content */}
         <div className="lg:col-span-2">
-          <article className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <article className="bg-white rounded-2xl shadow-lg overflow-hidden animate-fade-in">
             <div className="relative h-96 overflow-hidden">
               <ArticleImage
                 src={article.image}
                 alt={article.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full"
                 fallbackClassName="h-96"
+                priority={true}
               />
             </div>
 
@@ -137,7 +130,7 @@ export default async function ArticlePage({
 
         {/* Sidebar - Related Articles */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-24">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-24 animate-fade-in">
             <div className="p-6 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Related Articles</h2>
               {relatedArticles.length > 0 && (
@@ -147,19 +140,20 @@ export default async function ArticlePage({
             
             {relatedArticles.length > 0 ? (
               <div className="p-6 space-y-4">
-                {relatedArticles.map((relatedArticle: any) => (
+                {relatedArticles.map((relatedArticle: any, index: number) => (
                   <Link 
                     key={relatedArticle.id} 
                     href={`/articles/${relatedArticle.slug || relatedArticle.id}`}
-                    className="block group"
+                    className="block group animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className="flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 bg-white group-hover:bg-blue-50/30">
+                    <div className="flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 bg-white group-hover:bg-blue-50/30 transform hover:-translate-y-1">
                       {/* Article Image */}
                       <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
                         <ArticleImage
                           src={relatedArticle.image}
                           alt={relatedArticle.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          className="w-full h-full"
                           fallbackClassName="w-20 h-20"
                         />
                       </div>

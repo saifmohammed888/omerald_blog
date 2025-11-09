@@ -46,7 +46,7 @@ export default function ArticleCarousel({ articles, title = 'More recent article
                 <ArticleImage
                   src={article.image}
                   alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full"
                   fallbackClassName="w-full h-full"
                 />
               </div>

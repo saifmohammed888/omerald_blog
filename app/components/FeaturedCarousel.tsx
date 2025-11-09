@@ -80,9 +80,11 @@ export default function FeaturedCarousel({
                   <ArticleImage
                     src={article.image}
                     alt={article.title}
-                    className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out brightness-90 group-hover:brightness-100"
+                    className="w-full h-full"
                     fallbackClassName="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700"
+                    priority={index === 0}
                   />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-700"></div>
                 </div>
                 
                 {/* Enhanced overlay gradients for better text readability */}

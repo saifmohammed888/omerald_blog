@@ -46,19 +46,7 @@ async function getHealthTopics() {
   }
 }
 
-async function getAllArticlesForTopics() {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(
-      `${baseUrl}/api/articles?status=1&limit=1000&sortBy=created_at&sortOrder=desc`,
-      { cache: 'no-store' }
-    )
-    if (!res.ok) return { success: false, data: [] }
-    return await res.json()
-  } catch (error) {
-    return { success: false, data: [] }
-  }
-}
+// Removed getAllArticlesForTopics - we'll use healthTopics directly from API
 
 async function getTrendingArticles() {
   try {
@@ -98,10 +86,9 @@ export default async function ArticlesPage({
   const healthTopic = searchParams.healthTopic || ''
   const limit = 12
   
-  const [articlesData, healthTopicsData, allArticlesData, trendingData, latestData] = await Promise.all([
+  const [articlesData, healthTopicsData, trendingData, latestData] = await Promise.all([
     getArticles(currentPage, limit, search, healthTopic),
     getHealthTopics(),
-    getAllArticlesForTopics(), // Get all articles to extract unique topics
     getTrendingArticles(),
     getLatestArticles()
   ])
@@ -109,7 +96,6 @@ export default async function ArticlesPage({
   const articles = articlesData.data || []
   const pagination = articlesData.pagination || {}
   const healthTopics = healthTopicsData.data || []
-  const allArticles = allArticlesData.data || []
   const trendingArticles = trendingData.data || []
   const latestArticles = latestData.data || []
 
@@ -124,25 +110,28 @@ export default async function ArticlesPage({
       </div>
 
       {/* Search and Filter Component */}
-      <ArticleFilters healthTopics={healthTopics} articles={allArticles} />
+      <ArticleFilters healthTopics={healthTopics} />
 
-      {/* Trending/Latest Articles Section */}
-      <TrendingLatestSection 
-        trendingArticles={trendingArticles}
-        latestArticles={latestArticles}
-      />
-
-      {articles.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {articles.map((article: any) => (
-              <Link key={article.id} href={`/articles/${article.slug || article.id}`}>
-                <article className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group cursor-pointer">
+      {/* Main Content with Sidebar Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+        {/* Main Articles Section - Left (3/4 width) */}
+        <div className="lg:col-span-3">
+          {articles.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            {articles.map((article: any, index: number) => (
+              <Link 
+                key={article.id} 
+                href={`/articles/${article.slug || article.id}`}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <article className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group cursor-pointer h-full flex flex-col">
                   <div className="relative h-48 overflow-hidden">
                     <ArticleImage
                       src={article.image}
                       alt={article.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full"
                       fallbackClassName="h-48"
                     />
                   </div>
@@ -247,6 +236,18 @@ export default async function ArticlesPage({
           )}
         </div>
       )}
+        </div>
+
+        {/* Trending Articles Sidebar - Right (1/4 width) */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-24">
+            <TrendingLatestSection 
+              trendingArticles={trendingArticles}
+              latestArticles={latestArticles}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

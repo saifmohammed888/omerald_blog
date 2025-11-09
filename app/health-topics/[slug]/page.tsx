@@ -19,24 +19,17 @@ async function getHealthTopic(slug: string) {
 async function getRelatedArticles(topicId: number) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/articles?page=1&limit=100&status=1&sortBy=created_at&sortOrder=desc`, {
-      cache: 'no-store'
-    })
+    // Use the healthTopic filter in the API to efficiently fetch only related articles
+    const res = await fetch(
+      `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${topicId}`,
+      { cache: 'no-store' }
+    )
     if (!res.ok) return []
     const data = await res.json()
-    // Filter articles that contain this health topic ID (health_topics stores IDs like "105" or "105,112")
     const articles = data.data || []
     
-    return articles.filter((article: any) => {
-      if (!article.health_topics) return false
-      const articleTopicIds = article.health_topics.split(',').map((t: string) => {
-        const trimmed = t.trim()
-        const parsed = parseInt(trimmed, 10)
-        return isNaN(parsed) ? null : parsed
-      }).filter((id: number | null) => id !== null) as number[]
-      
-      return articleTopicIds.includes(topicId)
-    }).slice(0, 6)
+    // Limit to 6 articles
+    return articles.slice(0, 6)
   } catch (error) {
     return []
   }
@@ -56,7 +49,7 @@ export default async function HealthTopicPage({
   const relatedArticles = await getRelatedArticles(topic.id)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
       <Link 
         href="/health-topics" 
         className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium mb-8 transition-colors group"
@@ -70,7 +63,7 @@ export default async function HealthTopicPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2">
-          <article className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+          <article className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 animate-fade-in">
             <div className="p-8 md:p-12">
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">HEALTH TOPICS</span>
@@ -104,7 +97,7 @@ export default async function HealthTopicPage({
 
         {/* Sidebar - Related Articles */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-24">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-24 animate-fade-in">
             <div className="p-6 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Related Articles</h2>
               {relatedArticles.length > 0 && (
@@ -114,19 +107,20 @@ export default async function HealthTopicPage({
             
             {relatedArticles.length > 0 ? (
               <div className="p-6 space-y-4">
-                {relatedArticles.map((article: any) => (
+                {relatedArticles.map((article: any, index: number) => (
                   <Link 
                     key={article.id} 
                     href={`/articles/${article.slug || article.id}`}
-                    className="block group"
+                    className="block group animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className="flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 bg-white group-hover:bg-blue-50/30">
+                    <div className="flex gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 bg-white group-hover:bg-blue-50/30 transform hover:-translate-y-1">
                       {/* Article Image */}
                       <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
                         <ArticleImage
                           src={article.image}
                           alt={article.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          className="w-full h-full"
                           fallbackClassName="w-20 h-20"
                         />
                       </div>

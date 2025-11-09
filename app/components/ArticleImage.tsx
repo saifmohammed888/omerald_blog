@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 interface ArticleImageProps {
   src?: string | null
   alt: string
   className?: string
   fallbackClassName?: string
+  priority?: boolean
 }
 
 const IMAGE_BASE_URL = 'https://blog.omerald.com/public/uploads/articles'
@@ -31,8 +33,15 @@ function convertToWebp(url: string): string {
   return url.replace(/\.(jpg|jpeg|png|gif|bmp|svg)(\?.*)?$/i, '.webp$2')
 }
 
-export default function ArticleImage({ src, alt, className = '', fallbackClassName = '' }: ArticleImageProps) {
+export default function ArticleImage({ 
+  src, 
+  alt, 
+  className = '', 
+  fallbackClassName = '',
+  priority = false 
+}: ArticleImageProps) {
   const [imageError, setImageError] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const imageUrl = getImageUrl(src)
 
   if (!imageUrl || imageError) {
@@ -44,12 +53,24 @@ export default function ArticleImage({ src, alt, className = '', fallbackClassNa
   }
 
   return (
-    <img
-      src={imageUrl}
-      alt={alt}
-      className={className}
-      onError={() => setImageError(true)}
-    />
+    <div className={`relative overflow-hidden ${fallbackClassName || className}`}>
+      {isLoading && (
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse z-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+        </div>
+      )}
+      <Image
+        src={imageUrl}
+        alt={alt}
+        fill
+        className={`object-cover ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}
+        onError={() => setImageError(true)}
+        onLoad={() => setIsLoading(false)}
+        loading={priority ? undefined : 'lazy'}
+        priority={priority}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
+    </div>
   )
 }
 
