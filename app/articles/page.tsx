@@ -3,7 +3,7 @@ import ArticleImage from '../components/ArticleImage'
 import ArticleFilters from '../components/ArticleFilters'
 import TrendingLatestSection from '../components/TrendingLatestSection'
 
-import { getBaseUrl } from '../lib/utils'
+import { getBaseUrl, getHealthTopicName } from '../lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -143,11 +143,14 @@ export default async function ArticlesPage({
                   <div className="p-6">
                     {article.health_topics && (
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {article.health_topics.split(',').slice(0, 2).map((topic: string, idx: number) => (
-                          <span key={idx} className="px-3 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full">
-                            {topic.trim()}
-                          </span>
-                        ))}
+                        {article.health_topics.split(',').slice(0, 2).map((topicId: string, idx: number) => {
+                          const topicName = getHealthTopicName(healthTopics, topicId.trim())
+                          return (
+                            <span key={idx} className="px-3 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full">
+                              {topicName}
+                            </span>
+                          )
+                        })}
                       </div>
                     )}
                     <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-primary-600 transition-colors">
@@ -249,6 +252,7 @@ export default async function ArticlesPage({
             <TrendingLatestSection 
               trendingArticles={trendingArticles}
               latestArticles={latestArticles}
+              healthTopics={healthTopics}
             />
           </div>
         </div>

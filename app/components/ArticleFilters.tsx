@@ -48,6 +48,22 @@ export default function ArticleFilters({ healthTopics, articles = [] }: ArticleF
           title: topic,
         }))
       })()
+  
+  // Create a mapping of topic titles to IDs for quick lookup
+  const topicTitleToIdMap = new Map<string, string>()
+  uniqueTopics.forEach((topic) => {
+    topicTitleToIdMap.set(topic.title, topic.id.toString())
+  })
+  
+  // Helper function to get topic ID from title or return the value if it's already an ID
+  const getTopicId = (value: string): string => {
+    // If it's already a numeric ID, return it
+    if (/^\d+$/.test(value)) {
+      return value
+    }
+    // Otherwise, look it up in the map
+    return topicTitleToIdMap.get(value) || value
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -93,10 +109,20 @@ export default function ArticleFilters({ healthTopics, articles = [] }: ArticleF
     // Don't call updateFilters here - let the debounce effect handle it
   }
 
-  const toggleTopic = (topic: string) => {
-    const newTopics = selectedTopics.includes(topic)
-      ? selectedTopics.filter(t => t !== topic)
-      : [...selectedTopics, topic]
+  const toggleTopic = (topicTitle: string) => {
+    const topicId = getTopicId(topicTitle)
+    // Check if this topic ID is already selected (handle both ID and title formats)
+    const isSelected = selectedTopics.some(t => {
+      const tId = getTopicId(t)
+      return tId === topicId || t === topicTitle
+    })
+    
+    const newTopics = isSelected
+      ? selectedTopics.filter(t => {
+          const tId = getTopicId(t)
+          return tId !== topicId && t !== topicTitle
+        })
+      : [...selectedTopics, topicId] // Store IDs instead of titles
     
     setSelectedTopics(newTopics)
     // Clear debounce timer when topic changes
@@ -106,8 +132,12 @@ export default function ArticleFilters({ healthTopics, articles = [] }: ArticleF
     updateFilters(search, newTopics) // Topic changes immediately (no debounce needed)
   }
 
-  const removeTopic = (topic: string) => {
-    const newTopics = selectedTopics.filter(t => t !== topic)
+  const removeTopic = (topicValue: string) => {
+    const topicId = getTopicId(topicValue)
+    const newTopics = selectedTopics.filter(t => {
+      const tId = getTopicId(t)
+      return tId !== topicId && t !== topicValue
+    })
     setSelectedTopics(newTopics)
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
@@ -198,7 +228,12 @@ export default function ArticleFilters({ healthTopics, articles = [] }: ArticleF
               {selectedTopics.length === 0
                 ? 'All Topics'
                 : selectedTopics.length === 1
-                ? selectedTopics[0]
+                ? (() => {
+                    // Get topic title from ID
+                    const topicId = getTopicId(selectedTopics[0])
+                    const topic = uniqueTopics.find(t => t.id.toString() === topicId)
+                    return topic ? topic.title : selectedTopics[0]
+                  })()
                 : `${selectedTopics.length} topics selected`}
             </span>
             <svg
@@ -239,23 +274,33 @@ export default function ArticleFilters({ healthTopics, articles = [] }: ArticleF
                 <button
                   type="button"
                   onClick={() => {
-                    if (selectedTopics.length === filteredTopics.length && filteredTopics.length > 0) {
+                    // Check if all filtered topics are selected (by ID)
+                    const filteredTopicIds = filteredTopics.map(t => t.id.toString())
+                    const allSelected = filteredTopicIds.every(id => 
+                      selectedTopics.some(st => getTopicId(st) === id)
+                    )
+                    
+                    if (allSelected && filteredTopics.length > 0) {
                       setSelectedTopics([])
                       updateFilters(search, [])
                     } else {
-                      const allTopics = filteredTopics.map(t => t.title)
-                      setSelectedTopics(allTopics)
-                      updateFilters(search, allTopics)
+                      // Select all filtered topics by their IDs
+                      setSelectedTopics(filteredTopicIds)
+                      updateFilters(search, filteredTopicIds)
                     }
                   }}
                   className="w-full px-4 py-2.5 text-left text-white hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm"
                 >
                   <div className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
-                    filteredTopics.length > 0 && selectedTopics.length === filteredTopics.length
+                    filteredTopics.length > 0 && filteredTopics.every(t => 
+                      selectedTopics.some(st => getTopicId(st) === t.id.toString())
+                    )
                       ? 'bg-primary-500 border-primary-500'
                       : 'border-gray-500'
                   }`}>
-                    {filteredTopics.length > 0 && selectedTopics.length === filteredTopics.length && (
+                    {filteredTopics.length > 0 && filteredTopics.every(t => 
+                      selectedTopics.some(st => getTopicId(st) === t.id.toString())
+                    ) && (
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
@@ -267,7 +312,8 @@ export default function ArticleFilters({ healthTopics, articles = [] }: ArticleF
                 {/* Topic Options */}
                 {filteredTopics.length > 0 ? (
                   filteredTopics.map((topic) => {
-                    const isSelected = selectedTopics.includes(topic.title)
+                    const topicId = topic.id.toString()
+                    const isSelected = selectedTopics.some(st => getTopicId(st) === topicId)
                     return (
                       <button
                         key={topic.id}
@@ -330,20 +376,26 @@ export default function ArticleFilters({ healthTopics, articles = [] }: ArticleF
               </button>
             </span>
           )}
-          {selectedTopics.map((topic) => (
-            <span key={topic} className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full flex items-center gap-2">
-              Topic: {topic}
-              <button
-                onClick={() => removeTopic(topic)}
-                className="hover:text-primary-900"
-                aria-label={`Remove ${topic} filter`}
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </span>
-          ))}
+          {selectedTopics.map((topicValue) => {
+            // Get topic title from ID
+            const topicId = getTopicId(topicValue)
+            const topic = uniqueTopics.find(t => t.id.toString() === topicId)
+            const topicTitle = topic ? topic.title : topicValue
+            return (
+              <span key={topicValue} className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full flex items-center gap-2">
+                Topic: {topicTitle}
+                <button
+                  onClick={() => removeTopic(topicValue)}
+                  className="hover:text-primary-900"
+                  aria-label={`Remove ${topicTitle} filter`}
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            )
+          })}
         </div>
       )}
 

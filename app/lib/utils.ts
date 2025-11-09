@@ -27,3 +27,17 @@ export function getBaseUrl(): string {
   return 'http://localhost:3000'
 }
 
+/**
+ * Get health topic name from ID
+ * @param healthTopics Array of health topics with id and title
+ * @param topicId Health topic ID (can be string or number)
+ * @returns Health topic name or fallback text
+ */
+export function getHealthTopicName(healthTopics: any[], topicId: string | number): string {
+  if (!topicId) return 'Health & Wellness'
+  const id = typeof topicId === 'string' ? parseInt(topicId.trim(), 10) : topicId
+  if (isNaN(id)) return String(topicId)
+  const topic = healthTopics.find((t: any) => t.id === id)
+  return topic?.title || 'Health & Wellness'
+}
+

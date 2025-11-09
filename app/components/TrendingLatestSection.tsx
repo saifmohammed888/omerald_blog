@@ -14,14 +14,21 @@ interface Article {
   health_topics?: string
 }
 
+interface HealthTopic {
+  id: number
+  title: string
+}
+
 interface TrendingLatestSectionProps {
   trendingArticles: Article[]
   latestArticles: Article[]
+  healthTopics?: HealthTopic[]
 }
 
 export default function TrendingLatestSection({ 
   trendingArticles, 
-  latestArticles 
+  latestArticles,
+  healthTopics = []
 }: TrendingLatestSectionProps) {
   const [activeTab, setActiveTab] = useState<'trending' | 'latest'>('trending')
   const articles = activeTab === 'trending' ? trendingArticles : latestArticles
@@ -93,14 +100,17 @@ export default function TrendingLatestSection({
                       {/* Health Topics */}
                       {article.health_topics && (
                         <div className="flex flex-wrap gap-1 mb-1">
-                          {article.health_topics.split(',').slice(0, 1).map((topic: string, idx: number) => (
-                            <span
-                              key={idx}
-                              className="px-1 py-0.5 bg-primary-50 text-primary-700 text-[9px] font-semibold rounded-full"
-                            >
-                              {topic.trim()}
-                            </span>
-                          ))}
+                          {article.health_topics.split(',').slice(0, 1).map((topicId: string, idx: number) => {
+                            const topicName = healthTopics.find((t: HealthTopic) => t.id === parseInt(topicId.trim(), 10))?.title || topicId.trim()
+                            return (
+                              <span
+                                key={idx}
+                                className="px-1 py-0.5 bg-primary-50 text-primary-700 text-[9px] font-semibold rounded-full"
+                              >
+                                {topicName}
+                              </span>
+                            )
+                          })}
                         </div>
                       )}
 
