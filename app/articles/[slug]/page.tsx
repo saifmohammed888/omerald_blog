@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ArticleImage from '../../components/ArticleImage'
 
+export const dynamic = 'force-dynamic'
+
 async function getArticle(slug: string) {
   try {
     // Use relative URL in production

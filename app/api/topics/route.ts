@@ -3,6 +3,8 @@ import { query } from '@/lib/db/mysql';
 import type { HealthTopicWithCount } from '@/lib/types/topic';
 import { getDummyTopicsWithCounts, getDummyTopics } from '@/lib/db/dummy-data';
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/topics
  * Get list of all health topics with article counts

@@ -22,7 +22,7 @@ export function getDummyArticles(): Article[] {
       updated_at: new Date(article.updated_at),
       approval_date: article.approval_date ? new Date(article.approval_date) : null,
     }));
-    return cachedArticles;
+    return cachedArticles || [];
   } catch (error) {
     console.error('Error loading dummy articles:', error);
     return [];
@@ -43,7 +43,7 @@ export function getDummyTopics(): HealthTopic[] {
       created_at: new Date(),
       updated_at: new Date(),
     }));
-    return cachedTopics;
+    return cachedTopics || [];
   } catch (error) {
     console.error('Error loading dummy topics:', error);
     return [];

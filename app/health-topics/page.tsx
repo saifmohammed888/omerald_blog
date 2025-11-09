@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import HealthTopicsSearch from './components/HealthTopicsSearch'
 
+export const dynamic = 'force-dynamic'
+
 async function getHealthTopics() {
   try {
     // Use relative URL in production

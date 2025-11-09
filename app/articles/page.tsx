@@ -3,6 +3,8 @@ import ArticleImage from '../components/ArticleImage'
 import ArticleFilters from '../components/ArticleFilters'
 import TrendingLatestSection from '../components/TrendingLatestSection'
 
+export const dynamic = 'force-dynamic'
+
 async function getArticles(
   page: number = 1, 
   limit: number = 10, 

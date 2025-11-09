@@ -3,6 +3,8 @@ import ArticleImage from './components/ArticleImage'
 import ArticleCarousel from './components/ArticleCarousel'
 import FeaturedCarousel from './components/FeaturedCarousel'
 
+export const dynamic = 'force-dynamic'
+
 async function getArticles() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
