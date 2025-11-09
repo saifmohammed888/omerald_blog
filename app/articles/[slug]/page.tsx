@@ -2,13 +2,14 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ArticleImage from '../../components/ArticleImage'
 
+import { getBaseUrl } from '../../lib/utils'
+
 export const dynamic = 'force-dynamic'
 
 async function getArticle(slug: string) {
   try {
-    // Use relative URL in production
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-    const url = process.env.VERCEL_URL ? `/api/articles/${slug}` : `${baseUrl}/api/articles/${slug}`
+    const baseUrl = getBaseUrl()
+    const url = `${baseUrl}/api/articles/${slug}`
     
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return null
@@ -33,12 +34,9 @@ async function getRelatedArticles(currentArticleId: number, healthTopics: string
     
     if (currentTopicIds.length === 0) return []
     
-    // Use relative URL in production
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const baseUrl = getBaseUrl()
     const firstTopicId = currentTopicIds[0]
-    const url = process.env.VERCEL_URL 
-      ? `/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${firstTopicId}`
-      : `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${firstTopicId}`
+    const url = `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${firstTopicId}`
     
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return []

@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import HealthTopicsSearch from './components/HealthTopicsSearch'
 
+import { getBaseUrl } from '../lib/utils'
+
 export const dynamic = 'force-dynamic'
 
 async function getHealthTopics() {
   try {
-    // Use relative URL in production
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-    const url = process.env.VERCEL_URL ? '/api/health-topics?limit=100' : `${baseUrl}/api/health-topics?limit=100`
+    const baseUrl = getBaseUrl()
+    const url = `${baseUrl}/api/health-topics?limit=100`
     
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return { success: false, data: [] }

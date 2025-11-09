@@ -3,11 +3,13 @@ import ArticleImage from './components/ArticleImage'
 import ArticleCarousel from './components/ArticleCarousel'
 import FeaturedCarousel from './components/FeaturedCarousel'
 
+import { getBaseUrl } from './lib/utils'
+
 export const dynamic = 'force-dynamic'
 
 async function getArticles() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const baseUrl = getBaseUrl()
     const url = `${baseUrl}/api/articles?page=1&limit=20&status=1&sortBy=created_at&sortOrder=desc`
     
     const res = await fetch(url, {
@@ -26,7 +28,7 @@ async function getArticles() {
 
 async function getHealthTopics() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const baseUrl = getBaseUrl()
     const url = `${baseUrl}/api/health-topics?limit=100`
     
     const res = await fetch(url, {
