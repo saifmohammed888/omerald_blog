@@ -3,13 +3,15 @@ import HealthTopicsSearch from './components/HealthTopicsSearch'
 
 async function getHealthTopics() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/health-topics?limit=100`, {
-      cache: 'no-store'
-    })
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? '/api/health-topics?limit=100' : `${baseUrl}/api/health-topics?limit=100`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return { success: false, data: [] }
     return await res.json()
   } catch (error) {
+    console.error('Error fetching health topics:', error)
     return { success: false, data: [] }
   }
 }

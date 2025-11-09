@@ -5,26 +5,40 @@ import FeaturedCarousel from './components/FeaturedCarousel'
 
 async function getArticles() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/articles?page=1&limit=20&status=1&sortBy=created_at&sortOrder=desc`, {
+    // Use relative URL in production to avoid CORS issues
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? '/api/articles?page=1&limit=20&status=1&sortBy=created_at&sortOrder=desc' : `${baseUrl}/api/articles?page=1&limit=20&status=1&sortBy=created_at&sortOrder=desc`
+    
+    const res = await fetch(url, {
       cache: 'no-store'
     })
-    if (!res.ok) return { success: false, data: [] }
+    if (!res.ok) {
+      console.error('Failed to fetch articles:', res.status, res.statusText)
+      return { success: false, data: [] }
+    }
     return await res.json()
   } catch (error) {
+    console.error('Error fetching articles:', error)
     return { success: false, data: [] }
   }
 }
 
 async function getHealthTopics() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/health-topics?limit=100`, {
+    // Use relative URL in production to avoid CORS issues
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? '/api/health-topics?limit=100' : `${baseUrl}/api/health-topics?limit=100`
+    
+    const res = await fetch(url, {
       cache: 'no-store'
     })
-    if (!res.ok) return { success: false, data: [] }
+    if (!res.ok) {
+      console.error('Failed to fetch health topics:', res.status, res.statusText)
+      return { success: false, data: [] }
+    }
     return await res.json()
   } catch (error) {
+    console.error('Error fetching health topics:', error)
     return { success: false, data: [] }
   }
 }

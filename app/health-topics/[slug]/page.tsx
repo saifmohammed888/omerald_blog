@@ -4,26 +4,29 @@ import ArticleImage from '../../components/ArticleImage'
 
 async function getHealthTopic(slug: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/health-topics/${slug}`, {
-      cache: 'no-store'
-    })
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? `/api/health-topics/${slug}` : `${baseUrl}/api/health-topics/${slug}`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return null
     const data = await res.json()
     return data.success ? data.data : null
   } catch (error) {
+    console.error('Error fetching health topic:', error)
     return null
   }
 }
 
 async function getRelatedArticles(topicId: number) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    // Use the healthTopic filter in the API to efficiently fetch only related articles
-    const res = await fetch(
-      `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${topicId}`,
-      { cache: 'no-store' }
-    )
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL
+      ? `/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${topicId}`
+      : `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${topicId}`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return []
     const data = await res.json()
     const articles = data.data || []
@@ -31,6 +34,7 @@ async function getRelatedArticles(topicId: number) {
     // Limit to 6 articles
     return articles.slice(0, 6)
   } catch (error) {
+    console.error('Error fetching related articles:', error)
     return []
   }
 }

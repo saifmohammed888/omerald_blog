@@ -10,7 +10,6 @@ async function getArticles(
   healthTopic: string = ''
 ) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -22,26 +21,30 @@ async function getArticles(
     if (search) params.append('search', search)
     if (healthTopic) params.append('healthTopic', healthTopic)
     
-    const res = await fetch(
-      `${baseUrl}/api/articles?${params.toString()}`,
-      { cache: 'no-store' }
-    )
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? `/api/articles?${params.toString()}` : `${baseUrl}/api/articles?${params.toString()}`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return { success: false, data: [], pagination: {} }
     return await res.json()
   } catch (error) {
+    console.error('Error fetching articles:', error)
     return { success: false, data: [], pagination: {} }
   }
 }
 
 async function getHealthTopics() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/health-topics?limit=100`, {
-      cache: 'no-store'
-    })
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? '/api/health-topics?limit=100' : `${baseUrl}/api/health-topics?limit=100`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return { success: false, data: [] }
     return await res.json()
   } catch (error) {
+    console.error('Error fetching health topics:', error)
     return { success: false, data: [] }
   }
 }
@@ -50,28 +53,30 @@ async function getHealthTopics() {
 
 async function getTrendingArticles() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(
-      `${baseUrl}/api/articles?status=1&limit=6&sortBy=article_ratings&sortOrder=desc`,
-      { cache: 'no-store' }
-    )
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? '/api/articles?status=1&limit=6&sortBy=article_ratings&sortOrder=desc' : `${baseUrl}/api/articles?status=1&limit=6&sortBy=article_ratings&sortOrder=desc`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return { success: false, data: [] }
     return await res.json()
   } catch (error) {
+    console.error('Error fetching trending articles:', error)
     return { success: false, data: [] }
   }
 }
 
 async function getLatestArticles() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(
-      `${baseUrl}/api/articles?status=1&limit=6&sortBy=created_at&sortOrder=desc`,
-      { cache: 'no-store' }
-    )
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? '/api/articles?status=1&limit=6&sortBy=created_at&sortOrder=desc' : `${baseUrl}/api/articles?status=1&limit=6&sortBy=created_at&sortOrder=desc`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return { success: false, data: [] }
     return await res.json()
   } catch (error) {
+    console.error('Error fetching latest articles:', error)
     return { success: false, data: [] }
   }
 }

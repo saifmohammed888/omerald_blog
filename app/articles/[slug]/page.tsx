@@ -4,14 +4,16 @@ import ArticleImage from '../../components/ArticleImage'
 
 async function getArticle(slug: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/articles/${slug}`, {
-      cache: 'no-store'
-    })
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const url = process.env.VERCEL_URL ? `/api/articles/${slug}` : `${baseUrl}/api/articles/${slug}`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return null
     const data = await res.json()
     return data.success ? data.data : null
   } catch (error) {
+    console.error('Error fetching article:', error)
     return null
   }
 }
@@ -19,8 +21,6 @@ async function getArticle(slug: string) {
 async function getRelatedArticles(currentArticleId: number, healthTopics: string) {
   try {
     if (!healthTopics) return []
-    
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
     
     // Extract health topic IDs from current article
     const currentTopicIds = healthTopics.split(',').map((t: string) => {
@@ -31,13 +31,14 @@ async function getRelatedArticles(currentArticleId: number, healthTopics: string
     
     if (currentTopicIds.length === 0) return []
     
-    // Use the first topic ID to filter related articles efficiently
-    // This is much more efficient than fetching 100 articles and filtering client-side
+    // Use relative URL in production
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
     const firstTopicId = currentTopicIds[0]
-    const res = await fetch(
-      `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${firstTopicId}`,
-      { cache: 'no-store' }
-    )
+    const url = process.env.VERCEL_URL 
+      ? `/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${firstTopicId}`
+      : `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${firstTopicId}`
+    
+    const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return []
     const data = await res.json()
     const articles = data.data || []
@@ -49,6 +50,7 @@ async function getRelatedArticles(currentArticleId: number, healthTopics: string
     
     return related
   } catch (error) {
+    console.error('Error fetching related articles:', error)
     return []
   }
 }
