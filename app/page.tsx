@@ -5,9 +5,8 @@ import FeaturedCarousel from './components/FeaturedCarousel'
 
 async function getArticles() {
   try {
-    // Use relative URL in production to avoid CORS issues
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-    const url = process.env.VERCEL_URL ? '/api/articles?page=1&limit=20&status=1&sortBy=created_at&sortOrder=desc' : `${baseUrl}/api/articles?page=1&limit=20&status=1&sortBy=created_at&sortOrder=desc`
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const url = `${baseUrl}/api/articles?page=1&limit=20&status=1&sortBy=created_at&sortOrder=desc`
     
     const res = await fetch(url, {
       cache: 'no-store'
@@ -25,9 +24,8 @@ async function getArticles() {
 
 async function getHealthTopics() {
   try {
-    // Use relative URL in production to avoid CORS issues
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-    const url = process.env.VERCEL_URL ? '/api/health-topics?limit=100' : `${baseUrl}/api/health-topics?limit=100`
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const url = `${baseUrl}/api/health-topics?limit=100`
     
     const res = await fetch(url, {
       cache: 'no-store'
