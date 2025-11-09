@@ -1,0 +1,366 @@
+{
+	"info": {
+		"_postman_id": "omerald-blog-api",
+		"name": "Omerald Blog API",
+		"description": "API collection for Omerald Blog - Health & Wellness Articles",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Check database connection and table status"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Articles",
+			"item": [
+				{
+					"name": "Get All Articles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles?limit=10&status=1&sortBy=created_at&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"articles"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Items per page (default: 10, max: 100)"
+								},
+								{
+									"key": "status",
+									"value": "1",
+									"description": "Article status: 1=Approved, 2=Submitted, 3=Draft, 4=Rejected"
+								},
+								{
+									"key": "sortBy",
+									"value": "created_at",
+									"description": "Sort field: created_at, updated_at, title, id"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"description": "Sort order: asc or desc"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search in title, short_description, description",
+									"disabled": true
+								},
+								{
+									"key": "topic",
+									"value": "",
+									"description": "Filter by topic slug or ID",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of articles with pagination and filtering"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Articles - Approved Only",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles?status=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"articles"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Articles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles?search=diabetes&status=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"articles"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "diabetes"
+								},
+								{
+									"key": "status",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Search articles by keyword"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Articles by Topic",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles?topic=diabetes&status=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"articles"
+							],
+							"query": [
+								{
+									"key": "topic",
+									"value": "diabetes"
+								},
+								{
+									"key": "status",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Filter articles by health topic slug or ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Article by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"articles",
+								"2"
+							]
+						},
+						"description": "Get a single article by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Article by Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles/how-to-be-safe-from-covid-19?bySlug=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"articles",
+								"how-to-be-safe-from-covid-19"
+							],
+							"query": [
+								{
+									"key": "bySlug",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get a single article by slug"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Topics",
+			"item": [
+				{
+					"name": "Get All Topics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/topics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"topics"
+							]
+						},
+						"description": "Get all health topics"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Topics Without Counts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/topics?includeCount=false",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"topics"
+							],
+							"query": [
+								{
+									"key": "includeCount",
+									"value": "false"
+								}
+							]
+						},
+						"description": "Get topics without article counts (faster)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Topic by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/topics/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"topics",
+								"4"
+							]
+						},
+						"description": "Get a single topic by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Topic by Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/topics/blood-pressure?bySlug=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"topics",
+								"blood-pressure"
+							],
+							"query": [
+								{
+									"key": "bySlug",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get a single topic by slug"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Topic with Articles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/topics/4?includeArticles=true&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"topics",
+								"4"
+							],
+							"query": [
+								{
+									"key": "includeArticles",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get topic with related articles"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}
+

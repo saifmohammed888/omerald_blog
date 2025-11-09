@@ -33,18 +33,10 @@ export async function GET(request: Request) {
       params.push(searchPattern, searchPattern, searchPattern)
     }
 
-    // Add health topic filter - support multiple topics (comma-separated)
+    // Add health topic filter
     if (healthTopic) {
-      const topics = healthTopic.split(',').map(t => t.trim()).filter(Boolean)
-      if (topics.length > 0) {
-        // For multiple topics, we need to match any of them
-        const topicConditions: string[] = []
-        topics.forEach((topic) => {
-          topicConditions.push(`(health_topics LIKE ? OR health_topics LIKE ? OR health_topics LIKE ? OR health_topics = ?)`)
-          params.push(`%${topic}%`, `${topic},%`, `%,${topic},%`, topic)
-        })
-        conditions.push(`(${topicConditions.join(' OR ')})`)
-      }
+      conditions.push(`(health_topics LIKE ? OR health_topics LIKE ? OR health_topics = ?)`)
+      params.push(`%${healthTopic}%`, `${healthTopic},%`, healthTopic)
     }
 
     const whereClause = conditions.join(' AND ')
