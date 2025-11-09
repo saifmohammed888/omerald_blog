@@ -3,6 +3,17 @@ import { query } from '@/app/lib/db'
 
 export const dynamic = 'force-dynamic'
 
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -64,14 +75,41 @@ export async function GET(request: Request) {
     `
 
     params.push(limit, offset)
-    const articles = await query(sql, params)
+    
+    let articles: any[] = []
+    let total = 0
+    let totalPages = 0
+    
+    try {
+      articles = await query(sql, params) as any[]
 
-    // Get total count for pagination
-    const countSql = `SELECT COUNT(*) as total FROM articles WHERE ${whereClause}`
-    const countParams = params.slice(0, -2) // Remove limit and offset
-    const [countResult] = await query(countSql, countParams) as any[]
-    const total = countResult?.total || 0
-    const totalPages = Math.ceil(total / limit)
+      // Get total count for pagination
+      const countSql = `SELECT COUNT(*) as total FROM articles WHERE ${whereClause}`
+      const countParams = params.slice(0, -2) // Remove limit and offset
+      const [countResult] = await query(countSql, countParams) as any[]
+      total = countResult?.total || 0
+      totalPages = Math.ceil(total / limit)
+    } catch (dbError: any) {
+      console.error('Database error:', dbError)
+      // Return empty results if database is unavailable
+      // This allows the app to still work even if DB is down
+      return NextResponse.json(
+        {
+          success: false,
+          data: [],
+          pagination: {
+            total: 0,
+            limit,
+            page,
+            totalPages: 0,
+            offset,
+            hasMore: false,
+          },
+          error: 'Database unavailable',
+        },
+        { status: 200, headers: corsHeaders }
+      )
+    }
 
     return NextResponse.json(
       {
@@ -86,7 +124,7 @@ export async function GET(request: Request) {
           hasMore: page < totalPages,
         },
       },
-      { status: 200 }
+      { status: 200, headers: corsHeaders }
     )
   } catch (error: any) {
     console.error('Error fetching articles:', error)
@@ -96,7 +134,7 @@ export async function GET(request: Request) {
         error: 'Failed to fetch articles',
         message: error.message,
       },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     )
   }
 }

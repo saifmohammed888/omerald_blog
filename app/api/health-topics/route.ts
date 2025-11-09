@@ -3,6 +3,17 @@ import { query } from '@/app/lib/db'
 
 export const dynamic = 'force-dynamic'
 
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -50,11 +61,39 @@ export async function GET(request: Request) {
     sql += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
     params.push(limit, offset)
 
-    const healthTopics = await query(sql, params) as any[]
+    let healthTopics: any[] = []
+    let total = 0
+    
+    try {
+      healthTopics = await query(sql, params) as any[]
+    } catch (dbError: any) {
+      console.error('Database error:', dbError)
+      // Return empty results if database is unavailable
+      return NextResponse.json(
+        {
+          success: false,
+          data: [],
+          pagination: {
+            total: 0,
+            limit,
+            offset,
+            hasMore: false,
+          },
+          error: 'Database unavailable',
+        },
+        { status: 200, headers: corsHeaders }
+      )
+    }
 
     // Get all approved articles to count related articles for each health topic
-    const articlesSql = `SELECT health_topics FROM articles WHERE status = 1`
-    const articles = await query(articlesSql, []) as any[]
+    let articles: any[] = []
+    try {
+      const articlesSql = `SELECT health_topics FROM articles WHERE status = 1`
+      articles = await query(articlesSql, []) as any[]
+    } catch (dbError: any) {
+      console.error('Error fetching articles for topic count:', dbError)
+      articles = []
+    }
 
     // Create a mapping of health topic IDs to article counts
     const topicCountMap: { [key: number]: number } = {}
@@ -109,8 +148,13 @@ export async function GET(request: Request) {
       countParams.push(searchTerm, searchTerm)
     }
 
-    const [countResult] = await query(countSql, countParams) as any[]
-    const total = countResult?.total || 0
+    try {
+      const [countResult] = await query(countSql, countParams) as any[]
+      total = countResult?.total || 0
+    } catch (dbError: any) {
+      console.error('Database count error:', dbError)
+      total = 0
+    }
 
     return NextResponse.json(
       {
@@ -123,7 +167,7 @@ export async function GET(request: Request) {
           hasMore: offset + limit < total,
         },
       },
-      { status: 200 }
+      { status: 200, headers: corsHeaders }
     )
   } catch (error: any) {
     console.error('Error fetching health topics:', error)
@@ -133,7 +177,7 @@ export async function GET(request: Request) {
         error: 'Failed to fetch health topics',
         message: error.message,
       },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     )
   }
 }
