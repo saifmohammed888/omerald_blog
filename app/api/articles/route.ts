@@ -24,6 +24,7 @@ export async function GET(request: Request) {
     const sortOrder = searchParams.get('sortOrder') || 'desc'
     const search = searchParams.get('search') || ''
     const healthTopic = searchParams.get('healthTopic') || ''
+    const topic = searchParams.get('topic') || '' // Support topic by slug/name
     
     // Calculate offset from page
     const offset = (page - 1) * limit
@@ -44,10 +45,26 @@ export async function GET(request: Request) {
       params.push(searchPattern, searchPattern, searchPattern)
     }
 
-    // Add health topic filter
-    if (healthTopic) {
+    // Handle topic parameter (slug/name) - convert to health topic ID(s)
+    let topicId = healthTopic
+    if (topic && !healthTopic) {
+      try {
+        // Try to find health topic by slug or title (case-insensitive)
+        const topicSql = `SELECT id FROM health_topics WHERE LOWER(slug) = LOWER(?) OR LOWER(title) = LOWER(?) LIMIT 1`
+        const topicResults = await query(topicSql, [topic, topic]) as any[]
+        if (topicResults.length > 0) {
+          topicId = topicResults[0].id.toString()
+        }
+      } catch (error) {
+        console.error('Error looking up topic:', error)
+        // If lookup fails, continue without topic filter
+      }
+    }
+
+    // Add health topic filter (supports both healthTopic ID and topic slug)
+    if (topicId) {
       conditions.push(`(health_topics LIKE ? OR health_topics LIKE ? OR health_topics = ?)`)
-      params.push(`%${healthTopic}%`, `${healthTopic},%`, healthTopic)
+      params.push(`%${topicId}%`, `${topicId},%`, topicId)
     }
 
     const whereClause = conditions.join(' AND ')

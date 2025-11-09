@@ -21,21 +21,38 @@ async function getHealthTopic(slug: string) {
   }
 }
 
-async function getRelatedArticles(topicId: number) {
+async function getRelatedArticles(topicSlug: string, limit: number = 6) {
   try {
     const baseUrl = getBaseUrl()
-    const url = `${baseUrl}/api/articles?page=1&limit=10&status=1&sortBy=created_at&sortOrder=desc&healthTopic=${topicId}`
+    const url = `${baseUrl}/api/articles?page=1&limit=${limit}&status=1&sortBy=created_at&sortOrder=desc&topic=${topicSlug}`
     
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return []
     const data = await res.json()
     const articles = data.data || []
     
-    // Limit to 6 articles
-    return articles.slice(0, 6)
+    return articles
   } catch (error) {
     console.error('Error fetching related articles:', error)
     return []
+  }
+}
+
+async function getTopicArticles(topicSlug: string, page: number = 1, limit: number = 20) {
+  try {
+    const baseUrl = getBaseUrl()
+    const url = `${baseUrl}/api/articles?page=${page}&limit=${limit}&status=1&sortBy=created_at&sortOrder=desc&topic=${topicSlug}`
+    
+    const res = await fetch(url, { cache: 'no-store' })
+    if (!res.ok) return { articles: [], pagination: null }
+    const data = await res.json()
+    const articles = data.data || []
+    const pagination = data.pagination || null
+    
+    return { articles, pagination }
+  } catch (error) {
+    console.error('Error fetching topic articles:', error)
+    return { articles: [], pagination: null }
   }
 }
 
@@ -50,7 +67,8 @@ export default async function HealthTopicPage({
     notFound()
   }
 
-  const relatedArticles = await getRelatedArticles(topic.id)
+  const relatedArticles = await getRelatedArticles(topic.slug || params.slug, 6)
+  const { articles: topicArticles, pagination } = await getTopicArticles(topic.slug || params.slug, 1, 20)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
@@ -188,6 +206,85 @@ export default async function HealthTopicPage({
           </div>
         </div>
       </div>
+
+      {/* Articles Section */}
+      {topicArticles.length > 0 && (
+        <section className="mt-16 animate-fade-in">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                Articles about {topic.title}
+              </h2>
+              {pagination && (
+                <p className="text-gray-600">
+                  Showing {topicArticles.length} of {pagination.total} articles
+                </p>
+              )}
+            </div>
+            <Link
+              href={`/articles?topic=${topic.slug || params.slug}`}
+              className="text-gray-700 hover:text-gray-900 font-semibold text-sm border-2 border-gray-300 px-5 py-2.5 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 transform hover:scale-105"
+            >
+              View All
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {topicArticles.map((article: any, index: number) => (
+              <Link
+                key={article.id}
+                href={`/articles/${article.slug || article.id}`}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <article className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col transform hover:-translate-y-1">
+                  {/* Image */}
+                  <div className="relative h-64 overflow-hidden bg-gray-100">
+                    <ArticleImage
+                      src={article.image}
+                      alt={article.title}
+                      className="w-full h-full"
+                      fallbackClassName="h-64"
+                    />
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                      {article.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed flex-1">
+                      {article.short_description || article.description?.substring(0, 150) || 'Read more about this health topic...'}
+                    </p>
+                    
+                    {/* Date & Read Time */}
+                    <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <span className="text-white font-bold text-sm">O</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900">Omerald</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(article.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {Math.ceil((article.description?.length || 500) / 200)} min read
+                        </p>
+                      </div>
+                      {/* Arrow Icon */}
+                      <svg 
+                        className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
