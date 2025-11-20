@@ -307,17 +307,38 @@ export default async function HealthTopicPage({
                       {article.short_description || article.description?.substring(0, 150) || 'Read more about this health topic...'}
                     </p>
                     
-                    {/* Date & Read Time */}
+                    {/* Author & Read Time */}
                     <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <span className="text-white font-bold text-sm">O</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">Omerald</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(article.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {Math.ceil((article.description?.length || 500) / 200)} min read
-                        </p>
-                      </div>
+                      {article.writer_name && (
+                        <>
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                            {article.writer_profile_photo ? (
+                              <img 
+                                src={`https://blog.omerald.com/public/uploads/users/${article.writer_profile_photo}`}
+                                alt={article.writer_name} 
+                                className="w-full h-full rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-white font-bold text-sm">
+                                {article.writer_name[0].toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">{article.writer_name}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(article.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {Math.ceil((article.description?.length || 500) / 200)} min read
+                            </p>
+                          </div>
+                        </>
+                      )}
+                      {!article.writer_name && (
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-500">
+                            {new Date(article.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {Math.ceil((article.description?.length || 500) / 200)} min read
+                          </p>
+                        </div>
+                      )}
                       {/* Arrow Icon */}
                       <svg 
                         className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" 

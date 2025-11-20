@@ -34,13 +34,13 @@ export async function GET(request: Request) {
     const validSortBy = allowedSortBy.includes(sortBy) ? sortBy : 'created_at'
     const validSortOrder = sortOrder.toLowerCase() === 'asc' ? 'ASC' : 'DESC'
 
-    // Build WHERE conditions
-    const conditions: string[] = ['status = ?']
+    // Build WHERE conditions (use table alias 'a' for articles)
+    const conditions: string[] = ['a.status = ?']
     const params: any[] = [status]
 
     // Add search filter
     if (search) {
-      conditions.push(`(title LIKE ? OR short_description LIKE ? OR description LIKE ?)`)
+      conditions.push(`(a.title LIKE ? OR a.short_description LIKE ? OR a.description LIKE ?)`)
       const searchPattern = `%${search}%`
       params.push(searchPattern, searchPattern, searchPattern)
     }
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
         // This correctly matches topic IDs in the health_topics column
         // Pattern: FIND_IN_SET('5', '5,10,15') returns 1 (found at position 1)
         // This is more accurate than LIKE patterns which could match "5" in "15" or "25"
-        topicConditions.push(`FIND_IN_SET(?, health_topics) > 0`)
+        topicConditions.push(`FIND_IN_SET(?, a.health_topics) > 0`)
         topicParams.push(topicId)
       })
       
@@ -121,25 +121,28 @@ export async function GET(request: Request) {
 
     const whereClause = conditions.join(' AND ')
 
-    // Fetch articles with filters
+    // Fetch articles with filters (JOIN with users table to get writer name)
     const sql = `
       SELECT 
-        id,
-        writer_id,
-        title,
-        slug,
-        short_description,
-        description,
-        health_topics,
-        article_ratings,
-        status,
-        image,
-        approval_date,
-        created_at,
-        updated_at
-      FROM articles
+        a.id,
+        a.writer_id,
+        a.title,
+        a.slug,
+        a.short_description,
+        a.description,
+        a.health_topics,
+        a.article_ratings,
+        a.status,
+        a.image,
+        a.approval_date,
+        a.created_at,
+        a.updated_at,
+        u.name as writer_name,
+        u.profile_photo as writer_profile_photo
+      FROM articles a
+      LEFT JOIN users u ON a.writer_id = u.id
       WHERE ${whereClause}
-      ORDER BY ${validSortBy} ${validSortOrder}
+      ORDER BY a.${validSortBy} ${validSortOrder}
       LIMIT ? OFFSET ?
     `
 
@@ -161,7 +164,7 @@ export async function GET(request: Request) {
       }
 
       // Get total count for pagination
-      const countSql = `SELECT COUNT(*) as total FROM articles WHERE ${whereClause}`
+      const countSql = `SELECT COUNT(*) as total FROM articles a WHERE ${whereClause}`
       const countParams = params.slice(0, -2) // Remove limit and offset
       const [countResult] = await query(countSql, countParams) as any[]
       total = countResult?.total || 0

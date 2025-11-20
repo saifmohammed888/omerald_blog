@@ -11,8 +11,14 @@ export async function GET(
     // Check if id is numeric (ID) or string (slug)
     const isNumeric = /^\d+$/.test(id)
     const sql = isNumeric
-      ? `SELECT * FROM articles WHERE id = ? AND status = 1`
-      : `SELECT * FROM articles WHERE slug = ? AND status = 1`
+      ? `SELECT a.*, u.name as writer_name, u.profile_photo as writer_profile_photo 
+         FROM articles a 
+         LEFT JOIN users u ON a.writer_id = u.id 
+         WHERE a.id = ? AND a.status = 1`
+      : `SELECT a.*, u.name as writer_name, u.profile_photo as writer_profile_photo 
+         FROM articles a 
+         LEFT JOIN users u ON a.writer_id = u.id 
+         WHERE a.slug = ? AND a.status = 1`
 
     const results = await query(sql, [id]) as any[]
 

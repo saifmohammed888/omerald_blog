@@ -118,12 +118,43 @@ export default async function ArticlePage({
                 {article.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6 text-xs sm:text-sm text-gray-600">
-                <span>Published: {new Date(article.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                {article.updated_at && article.updated_at !== article.created_at && (
-                  <span>• Updated: {new Date(article.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                )}
-              </div>
+              {/* Author Information */}
+              {article.writer_name && (
+                <div className="flex items-center gap-3 mb-4 sm:mb-5 md:mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                    {article.writer_profile_photo ? (
+                      <img 
+                        src={`https://blog.omerald.com/public/uploads/users/${article.writer_profile_photo}`}
+                        alt={article.writer_name} 
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-bold text-base">
+                        {article.writer_name[0].toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-gray-900">{article.writer_name}</p>
+                    <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-600">
+                      <span>{new Date(article.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                      {article.updated_at && article.updated_at !== article.created_at && (
+                        <span>• Updated: {new Date(article.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      )}
+                      <span>• {Math.ceil((article.description?.length || article.short_description?.length || 500) / 200)} min read</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {!article.writer_name && (
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6 text-xs sm:text-sm text-gray-600">
+                  <span>Published: {new Date(article.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  {article.updated_at && article.updated_at !== article.created_at && (
+                    <span>• Updated: {new Date(article.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  )}
+                </div>
+              )}
 
               {article.health_topics && (
                 <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-6 sm:mb-7 md:mb-8">

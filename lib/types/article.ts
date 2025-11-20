@@ -29,6 +29,9 @@ export interface Article {
   approval_date: Date | null;
   created_at: Date;
   updated_at: Date;
+  // Writer information (populated via JOIN with users table)
+  writer_name?: string | null;
+  writer_profile_photo?: string | null;
 }
 
 /**
